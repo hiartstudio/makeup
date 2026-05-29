@@ -5,19 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hi Art Studio | Makeup Booking</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 고급스러운 서체들 로드 -->
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1a1a1a; -webkit-font-smoothing: antialiased; }
         
-        /* 새로운 폰트: Cormorant Garamond / 간격을 더 넓히고 두께를 가볍게 조정 */
+        /* 폰트 간격을 0.15em -> 0.05em으로 줄여 가독성을 높였습니다 */
         .studio-logo { 
             font-family: 'Cormorant Garamond', serif; 
-            font-size: 2.4rem; 
-            letter-spacing: 0.15em; 
+            font-size: 2.2rem; 
+            letter-spacing: 0.05em; 
             text-transform: uppercase; 
             font-weight: 300;
             line-height: 1.2;
+            word-spacing: 0.1em;
         }
         
         .hidden { display: none !important; }
@@ -115,7 +115,6 @@
 </div>
 
 <script>
-    // 다국어 데이터 (만다린/칸토니즈 포함)
     const translations = {
         en: {
             subTitle: "Makeup Lesson Request",
@@ -128,201 +127,3 @@
             labelMakeupDate: "Preferred Makeup Date",
             labelMakeupTime: "Available Slots",
             btnLater: "I'll decide the date later",
-            policyBlock: "All classes must be changed or canceled at least 24 hours in advance. Request denied due to insufficient notice.",
-            laterNotice: "Please note: It is your responsibility to remind yourself to book the makeup lesson. When you book later, you must provide the date and time of the original absent class.",
-            finalNotice: "This is a request only. Head Teacher Lan Kim will confirm via SMS. If requested 24h+ in advance, your absence is noted, but finding a makeup slot may take time.",
-            satMsg: "Makeup classes are only available on weekdays. For special requests, please contact Head Teacher Lan Kim directly.",
-            btnSubmit: "Submit Request",
-            confirmBtn: "I understand. Open SMS"
-        },
-        ko: {
-            subTitle: "보충 수업 신청",
-            headCancel: "결석 예정 수업",
-            labelName: "학생 성함",
-            labelGrade: "학년",
-            labelCancelDate: "결석 날짜",
-            labelCancelTime: "기존 수업 시간",
-            headMakeup: "보충 신청 수업",
-            labelMakeupDate: "보충 희망 날짜",
-            labelMakeupTime: "선택 가능한 시간",
-            btnLater: "보충 날짜는 나중에 결정하겠습니다",
-            policyBlock: "모든 수업은 최소 24시간 전에 변경 혹은 캔슬이 가능합니다. 충분한 시간이 주어지지 않아 신청이 거절될 수 있습니다.",
-            laterNotice: "주의: 보충 수업 예약 리마인드 책임은 본인에게 있습니다. 추후 예약 시 취소했던 수업의 날짜와 시간을 반드시 알려주셔야 합니다.",
-            finalNotice: "이것은 요청일 뿐이며, 란킴 선생님이 컨펌 문자를 보내드릴 예정입니다. 24시간 전 요청이라면 취소는 처리되나 보충 가능 여부 확인에는 시간이 걸릴 수 있습니다.",
-            satMsg: "보충 수업은 평일에만 가능합니다. 특이 사항은 란킴 선생님께 직접 문의하십시오.",
-            btnSubmit: "신청서 제출",
-            confirmBtn: "내용 확인 및 문자 발송"
-        },
-        man: {
-            subTitle: "补课申请",
-            headCancel: "缺席课程",
-            labelName: "学生姓名",
-            labelGrade: "年级",
-            labelCancelDate: "缺席日期",
-            labelCancelTime: "原定课程时间",
-            headMakeup: "补课申请时间",
-            labelMakeupDate: "希望补课日期",
-            labelMakeupTime: "可用时间段",
-            btnLater: "稍后决定补课日期",
-            policyBlock: "所有课程必须至少提前 24 小时更改或取消。由于通知时间不足，申请可能被拒绝。",
-            laterNotice: "请注意：稍后预约补课是您的责任。再次预约时，请务必提供原缺席课程的日期和时间。",
-            finalNotice: "这仅是申请。主课老师 Lan Kim 将通过短信确认。提前 24 小时申请将处理取消，但补课位置确认可能需要时间。",
-            satMsg: "补课仅限工作日。如有特殊要求，请直接联系 Lan Kim 老师。",
-            btnSubmit: "提交申请",
-            confirmBtn: "确认并发送短信"
-        },
-        can: {
-            subTitle: "補課申請",
-            headCancel: "缺席課程",
-            labelName: "學生姓名",
-            labelGrade: "年級",
-            labelCancelDate: "缺席日期",
-            labelCancelTime: "原定課程時間",
-            headMakeup: "補課申請時間",
-            labelMakeupDate: "希望補課日期",
-            labelMakeupTime: "可用時間段",
-            btnLater: "稍後決定補課日期",
-            policyBlock: "所有課程必須至少提前 24 小時更改或取消。由於通知時間不足，申請可能被拒絕。",
-            laterNotice: "請注意：稍後預約補課是您的責任。再次預約時，請務必提供原缺席課程的日期和時間。",
-            finalNotice: "這僅是申請。主課老師 Lan Kim 將通過短信確認。提前 24 小時申請將處理取消，但補課位置確認可能需要時間。",
-            satMsg: "補課僅限工作日。如有特殊要求，請直接聯絡 Lan Kim 老師。",
-            btnSubmit: "提交申請",
-            confirmBtn: "確認並發送短信"
-        }
-    };
-
-    // 요일별 시간표 데이터
-    const scheduleData = [
-        { day: 'Mon', time: '05:20 - 06:20', dur: 1 }, { day: 'Tue', time: '03:20 - 04:20', dur: 1 }, { day: 'Tue', time: '04:30 - 05:30', dur: 1 }, { day: 'Wed', time: '03:50 - 04:50', dur: 1 }, { day: 'Thu', time: '04:00 - 05:00', dur: 1 }, { day: 'Fri', time: '03:50 - 04:50', dur: 1 },
-        { day: 'Mon', time: '03:40 - 05:10', dur: 1.5 }, { day: 'Tue', time: '05:50 - 07:20', dur: 1.5 }, { day: 'Wed', time: '03:40 - 05:10', dur: 1.5 }, { day: 'Thu', time: '04:00 - 05:30', dur: 1.5 }, { day: 'Fri', time: '03:40 - 05:10', dur: 1.5 },
-        { day: 'Mon', time: '04:00 - 06:00', dur: 2 }, { day: 'Tue', time: '03:40 - 05:40', dur: 2 }, { day: 'Wed', time: '05:20 - 07:20', dur: 2 }, { day: 'Thu', time: '05:40 - 07:40', dur: 2 }, { day: 'Fri', time: '05:20 - 07:20', dur: 2 }
-    ];
-
-    let currentLang = 'en';
-    let selectedDur = 0;
-    let cancelInfo = "";
-    let makeupInfo = "";
-
-    function changeLang(lang) {
-        currentLang = lang;
-        const t = translations[lang];
-        document.getElementById('sub-title').innerText = t.subTitle;
-        document.getElementById('head-cancel').innerText = t.headCancel;
-        document.getElementById('label-name').innerText = t.labelName;
-        document.getElementById('label-grade').innerText = t.labelGrade;
-        document.getElementById('label-cancel-date').innerText = t.labelCancelDate;
-        document.getElementById('label-cancel-time').innerText = t.labelCancelTime;
-        document.getElementById('head-makeup').innerText = t.headMakeup;
-        document.getElementById('label-makeup-date').innerText = t.labelMakeupDate;
-        document.getElementById('label-makeup-time').innerText = t.labelMakeupTime;
-        document.getElementById('btn-decide-later').innerText = t.btnLater;
-        document.getElementById('btn-submit-main').innerText = t.btnSubmit;
-        document.getElementById('student-name').placeholder = lang === 'ko' ? "예: Lan Kim" : "e.g. Lan Kim";
-        document.getElementById('student-grade').placeholder = lang === 'ko' ? "예: Year 2..." : "e.g. Year 2...";
-    }
-
-    function updateCancelTimeSlots() {
-        const val = document.getElementById('cancel-date').value;
-        const dateParts = val.split('-');
-        const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
-        const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dateObj.getDay()];
-        const container = document.getElementById('cancel-time-slots');
-        container.innerHTML = "";
-        
-        scheduleData.filter(s => s.day === dayName).forEach(slot => {
-            const btn = document.createElement('button');
-            btn.className = "btn-select";
-            btn.innerText = `${slot.time} (${slot.dur}h)`;
-            btn.onclick = () => {
-                const [startHour, startMin] = slot.time.split(' - ')[0].split(':');
-                const classTime = new Date(dateParts[0], dateParts[1]-1, dateParts[2], startHour, startMin);
-                if ((classTime - new Date()) < (24 * 60 * 60 * 1000)) {
-                    showModal(translations[currentLang].policyBlock);
-                    document.getElementById('makeup-section').classList.add('hidden');
-                    return;
-                }
-                selectedDur = slot.dur;
-                cancelInfo = `${val} (${dayName}) ${slot.time}`;
-                document.querySelectorAll('#cancel-time-slots .btn-select').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById('makeup-section').classList.remove('hidden');
-            };
-            container.appendChild(btn);
-        });
-        document.getElementById('cancel-time-area').classList.remove('hidden');
-    }
-
-    function updateMakeupTimeSlots() {
-        const val = document.getElementById('makeup-date').value;
-        const dateParts = val.split('-');
-        const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
-        const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dateObj.getDay()];
-
-        if(dayName === 'Sat' || dayName === 'Sun') {
-            showModal(translations[currentLang].satMsg);
-            document.getElementById('makeup-date').value = "";
-            return;
-        }
-
-        const container = document.getElementById('makeup-time-slots');
-        container.innerHTML = "";
-        const slots = scheduleData.filter(s => s.day === dayName && s.dur === selectedDur);
-        
-        if(slots.length > 0) {
-            document.getElementById('makeup-time-area').classList.remove('hidden');
-            slots.forEach(slot => {
-                const b = document.createElement('button');
-                b.className = "btn-select";
-                b.innerText = slot.time;
-                b.onclick = () => {
-                    makeupInfo = `${val} (${dayName}) ${slot.time}`;
-                    document.querySelectorAll('#makeup-time-slots .btn-select').forEach(x => x.classList.remove('active'));
-                    b.classList.add('active');
-                    document.getElementById('final-section').classList.remove('hidden');
-                };
-                container.appendChild(b);
-            });
-        } else {
-            container.innerHTML = `<p class='text-[10px] text-gray-300 italic'>No ${selectedDur}h slots on this day.</p>`;
-        }
-    }
-
-    function decideLater() {
-        makeupInfo = translations[currentLang].btnLater;
-        showModal(translations[currentLang].laterNotice);
-        document.getElementById('makeup-time-area').classList.add('hidden');
-        document.getElementById('final-section').classList.remove('hidden');
-    }
-
-    function showFinalNotice() {
-        const modal = document.getElementById('modal');
-        document.getElementById('modal-msg').innerText = translations[currentLang].finalNotice;
-        const btn = document.getElementById('modal-close-btn');
-        btn.innerText = translations[currentLang].confirmBtn;
-        btn.onclick = sendFinalSMS;
-        modal.classList.remove('hidden');
-    }
-
-    function sendFinalSMS() {
-        const name = document.getElementById('student-name').value;
-        const grade = document.getElementById('student-grade').value;
-        if(!name) { alert("Name required."); return; }
-
-        const msg = `[Hi Art Studio Request]\nStudent: ${name}\nGrade: ${grade}\n- Absent: ${cancelInfo}\n- Makeup: ${makeupInfo}`;
-        window.location.href = `sms:0405068004?body=${encodeURIComponent(msg)}`;
-        closeModal();
-    }
-
-    function showModal(text) {
-        document.getElementById('modal-msg').innerText = text;
-        const btn = document.getElementById('modal-close-btn');
-        btn.innerText = "Close";
-        btn.onclick = closeModal;
-        document.getElementById('modal').classList.remove('hidden');
-    }
-    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-
-    changeLang('en');
-</script>
-</body>
-</html>
