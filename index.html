@@ -127,9 +127,9 @@
             laterNotice: "Please note: It is your responsibility to remind yourself to book the makeup lesson. When you book later, you must provide the date and time of the original absent class.",
             finalNotice: "This is a request only. Head Teacher Lan Kim will send a confirmation SMS. If requested 24h+ in advance, your absence is noted, but finding a makeup slot may take time.",
             satMsg: "Makeup classes are only available on weekdays. For special requests, please contact Head Teacher Lan Kim directly.",
+            dayConflictMsg: "This is the student's regular class day. Makeup lessons cannot be scheduled on the same day as your regular class to prevent fatigue and scheduling conflicts.",
             btnSubmit: "Submit Request",
-            confirmBtn: "I understand. Open SMS",
-            close: "Close"
+            confirmBtn: "I understand. Open SMS"
         },
         ko: {
             subTitle: "보충 수업 신청",
@@ -146,9 +146,9 @@
             laterNotice: "주의: 보충 수업 예약 리마인드 책임은 본인에게 있습니다. 추후 예약 시 취소했던 수업의 날짜와 시간을 반드시 알려주셔야 합니다.",
             finalNotice: "안내: 이것은 단지 보충수업 요청일 뿐이며, 헤드티쳐 Lan Kim이 확인 후 컨펌 문자를 보내드릴 예정입니다. 24시간 전 요청이라면 수업 취소는 처리되나, 보충 수업 가능 여부 확인에는 시간이 걸릴 수 있습니다.",
             satMsg: "보충 수업은 평일에만 가능합니다. 특이 사항은 헤드티쳐 Lan Kim에게 직접 문의하십시오.",
+            dayConflictMsg: "해당 요일은 정규 수업이 있는 날입니다. 정규 수업과 겹칠 수 있으며, 하루에 두 타임을 연달아 수업할 경우 아이들이 매우 피곤해할 수 있어 보충 신청이 제한됩니다.",
             btnSubmit: "신청서 제출",
-            confirmBtn: "내용 확인 및 문자 발송",
-            close: "닫기"
+            confirmBtn: "내용 확인 및 문자 발송"
         },
         man: {
             subTitle: "补课申请",
@@ -165,9 +165,9 @@
             laterNotice: "请注意：稍后预约补课是您的责任。再次预约时，请务必提供原缺席课程的日期和时间。",
             finalNotice: "这仅是申请。主课老师 Lan Kim 将通过短信确认。提前 24 小时申请将处理取消，但补课位置确认可能需要时间。",
             satMsg: "补课仅限工作日。如有特殊要求，请直接联系 Lan Kim 老师。",
+            dayConflictMsg: "这是学生定期上课的时间。补课不能安排在与定期课程同一天，以防冲突和学生疲劳。",
             btnSubmit: "提交申请",
-            confirmBtn: "确认并发送短信",
-            close: "关闭"
+            confirmBtn: "确认并发送短信"
         },
         can: {
             subTitle: "補課申請",
@@ -184,9 +184,9 @@
             laterNotice: "請注意：稍後預約補課是您的責任。再次預約時，請務必提供原缺席課程的日期和時間。",
             finalNotice: "這僅是申請。主課老師 Lan Kim 將通過短信確認。提前 24 小時申請將處理取消，但補課位置確認可能需要時間。",
             satMsg: "補課僅限工作日。如有特殊要求，請直接聯絡 Lan Kim 老師。",
+            dayConflictMsg: "這是學生定期上課的時間。補課不能安排在與定期課程同一天，以防衝突和學生疲勞。",
             btnSubmit: "提交申請",
-            confirmBtn: "確認並發送短信",
-            close: "關閉"
+            confirmBtn: "確認並發送短信"
         }
     };
 
@@ -199,6 +199,7 @@
 
     let currentLang = 'en';
     let selectedDur = 0;
+    let absentDayName = ""; // 결석 요일 저장용
     let cancelInfo = "";
     let makeupInfo = "";
 
@@ -236,19 +237,17 @@
             btn.onclick = () => {
                 let [startHour, startMin] = slot.time.split(' - ')[0].split(':');
                 let hourInt = parseInt(startHour);
-                // 중요: 평일(월-금) 오후 수업은 12를 더해 24시간제로 변환
-                if (dayName !== 'Sat' && hourInt < 12) {
-                    hourInt += 12;
-                }
-                const classTime = new Date(dateParts[0], dateParts[1]-1, dateParts[2], hourInt, parseInt(startMin));
-                const now = new Date();
+                if (dayName !== 'Sat' && hourInt < 12) hourInt += 12;
                 
-                if ((classTime - now) < (24 * 60 * 60 * 1000)) {
+                const classTime = new Date(dateParts[0], dateParts[1]-1, dateParts[2], hourInt, parseInt(startMin));
+                if ((classTime - new Date()) < (24 * 60 * 60 * 1000)) {
                     showModal(translations[currentLang].policyBlock);
                     document.getElementById('makeup-section').classList.add('hidden');
                     return;
                 }
+
                 selectedDur = slot.dur;
+                absentDayName = dayName; // 결석 요일 저장
                 cancelInfo = `${val} (${dayName}) ${slot.time}`;
                 document.querySelectorAll('#cancel-time-slots .btn-select').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -266,9 +265,19 @@
         const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
         const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dateObj.getDay()];
 
+        // 1. 토요일/일요일 차단
         if(dayName === 'Sat' || dayName === 'Sun') {
             showModal(translations[currentLang].satMsg);
             document.getElementById('makeup-date').value = "";
+            document.getElementById('makeup-time-area').classList.add('hidden');
+            return;
+        }
+
+        // 2. 정규 수업 요일(결석 요일) 중복 차단
+        if(dayName === absentDayName) {
+            showModal(translations[currentLang].dayConflictMsg);
+            document.getElementById('makeup-date').value = "";
+            document.getElementById('makeup-time-area').classList.add('hidden');
             return;
         }
 
@@ -324,7 +333,7 @@
     function showModal(text) {
         document.getElementById('modal-msg').innerText = text;
         const btn = document.getElementById('modal-close-btn');
-        btn.innerText = translations[currentLang].close || "Close";
+        btn.innerText = "Close";
         btn.onclick = closeModal;
         document.getElementById('modal').classList.remove('hidden');
     }
