@@ -191,12 +191,9 @@
     };
 
     const scheduleData = [
-        // 1 Hour
         { day: 'Mon', time: '05:20 - 06:20', dur: 1 }, { day: 'Tue', time: '03:20 - 04:20', dur: 1 }, { day: 'Tue', time: '04:30 - 05:30', dur: 1 }, { day: 'Wed', time: '03:50 - 04:50', dur: 1 }, { day: 'Thu', time: '04:00 - 05:00', dur: 1 }, { day: 'Fri', time: '03:50 - 04:50', dur: 1 },
-        // 1.5 Hour
         { day: 'Mon', time: '03:40 - 05:10', dur: 1.5 }, { day: 'Tue', time: '05:50 - 07:20', dur: 1.5 }, { day: 'Wed', time: '03:40 - 05:10', dur: 1.5 }, { day: 'Thu', time: '04:00 - 05:30', dur: 1.5 }, { day: 'Fri', time: '03:40 - 05:10', dur: 1.5 },
         { day: 'Sat', time: '09:40 - 11:10', dur: 1.5 }, { day: 'Sat', time: '11:20 - 12:50', dur: 1.5 },
-        // 2 Hour
         { day: 'Mon', time: '04:00 - 06:00', dur: 2 }, { day: 'Tue', time: '03:40 - 05:40', dur: 2 }, { day: 'Wed', time: '05:20 - 07:20', dur: 2 }, { day: 'Thu', time: '05:40 - 07:40', dur: 2 }, { day: 'Fri', time: '05:20 - 07:20', dur: 2 }
     ];
 
@@ -219,8 +216,8 @@
         document.getElementById('label-makeup-time').innerText = t.labelMakeupTime;
         document.getElementById('btn-decide-later').innerText = t.btnLater;
         document.getElementById('btn-submit-main').innerText = t.btnSubmit;
-        document.getElementById('student-name').placeholder = (lang === 'ko' ? "예: Lan Kim" : (lang === 'man' ? "例如: Lan Kim" : (lang === 'can' ? "例如: Lan Kim" : "e.g. Lan Kim")));
-        document.getElementById('student-grade').placeholder = (lang === 'ko' ? "예: Year 2..." : (lang === 'man' ? "例如: Year 2..." : (lang === 'can' ? "例如: Year 2..." : "e.g. Year 2...")));
+        document.getElementById('student-name').placeholder = (lang === 'ko' ? "예: Lan Kim" : "e.g. Lan Kim");
+        document.getElementById('student-grade').placeholder = (lang === 'ko' ? "예: Year 2..." : "e.g. Year 2...");
     }
 
     function updateCancelTimeSlots() {
@@ -237,9 +234,16 @@
             btn.className = "btn-select";
             btn.innerText = `${slot.time} (${slot.dur}h)`;
             btn.onclick = () => {
-                const [startHour, startMin] = slot.time.split(' - ')[0].split(':');
-                const classTime = new Date(dateParts[0], dateParts[1]-1, dateParts[2], startHour, startMin);
-                if ((classTime - new Date()) < (24 * 60 * 60 * 1000)) {
+                let [startHour, startMin] = slot.time.split(' - ')[0].split(':');
+                let hourInt = parseInt(startHour);
+                // 중요: 평일(월-금) 오후 수업은 12를 더해 24시간제로 변환
+                if (dayName !== 'Sat' && hourInt < 12) {
+                    hourInt += 12;
+                }
+                const classTime = new Date(dateParts[0], dateParts[1]-1, dateParts[2], hourInt, parseInt(startMin));
+                const now = new Date();
+                
+                if ((classTime - now) < (24 * 60 * 60 * 1000)) {
                     showModal(translations[currentLang].policyBlock);
                     document.getElementById('makeup-section').classList.add('hidden');
                     return;
@@ -265,7 +269,6 @@
         if(dayName === 'Sat' || dayName === 'Sun') {
             showModal(translations[currentLang].satMsg);
             document.getElementById('makeup-date').value = "";
-            document.getElementById('makeup-time-area').classList.add('hidden');
             return;
         }
 
@@ -321,13 +324,12 @@
     function showModal(text) {
         document.getElementById('modal-msg').innerText = text;
         const btn = document.getElementById('modal-close-btn');
-        btn.innerText = translations[currentLang].close;
+        btn.innerText = translations[currentLang].close || "Close";
         btn.onclick = closeModal;
         document.getElementById('modal').classList.remove('hidden');
     }
     function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 
-    // 초기 실행
     changeLang('en');
 </script>
 </body>
