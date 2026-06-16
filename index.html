@@ -1,345 +1,502 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hi Art Studio | Makeup Booking</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1a1a1a; -webkit-font-smoothing: antialiased; }
-        .studio-logo { 
-            font-family: 'Cormorant Garamond', serif; 
-            font-size: 2.2rem; 
-            letter-spacing: 0.05em; 
-            text-transform: uppercase; 
-            font-weight: 300;
-            line-height: 1.2;
-        }
-        .hidden { display: none !important; }
-        .modal-bg { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(15px); position: fixed; top:0; left:0; width:100%; height:100%; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 30px; }
-        input { border-radius: 0 !important; border-bottom: 1px solid #e5e5e5 !important; background: transparent; transition: border-color 0.3s; width: 100%; padding: 12px 0; font-size: 14px; color: #1a1a1a; }
-        input::placeholder { color: #ccc; font-style: italic; }
-        input:focus { border-bottom: 1px solid #1a1a1a !important; outline: none; }
-        .btn-select { border: 1px solid #f0f0f0; padding: 15px; font-size: 12px; text-align: left; cursor: pointer; transition: 0.2s; margin-bottom: 8px; display: block; width: 100%; }
-        .btn-select.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
-        .section-title { font-size: 10px; font-weight: 600; text-transform: uppercase; tracking: 0.2em; border-bottom: 1px solid #1a1a1a; display: inline-block; margin-bottom: 24px; }
-        .label-text { font-size: 10px; text-transform: uppercase; color: #aaa; letter-spacing: 0.1em; margin-bottom: 6px; display: block; }
-    </style>
-</head>
-<body class="pb-32">
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Calendar, 
+  User, 
+  Clock, 
+  Globe, 
+  AlertTriangle, 
+  CheckCircle, 
+  BookOpen, 
+  ChevronRight, 
+  Send 
+} from 'lucide-react';
+import { Language, ScheduleItem } from './types';
+import { scheduleData, translations } from './data';
 
-<div id="app" class="max-w-md mx-auto px-8 py-12">
-    <!-- Language Selection -->
-    <div class="flex justify-end gap-4 mb-16 text-[9px] tracking-widest text-gray-400 font-medium">
-        <button onclick="changeLang('en')" class="hover:text-black">EN</button>
-        <button onclick="changeLang('ko')" class="hover:text-black">한국어</button>
-        <button onclick="changeLang('man')" class="hover:text-black">普通话</button>
-        <button onclick="changeLang('can')" class="hover:text-black">廣東話</button>
-    </div>
+export default function App() {
+  const [lang, setLang] = useState<Language>('en');
+  const [studentName, setStudentName] = useState('');
+  const [studentGrade, setStudentGrade] = useState('');
+  
+  const [cancelDate, setCancelDate] = useState('');
+  const [cancelSlot, setCancelSlot] = useState<ScheduleItem | null>(null);
+  
+  const [makeupChoice, setMakeupChoice] = useState<'now' | 'later' | null>(null);
+  const [makeupDate, setMakeupDate] = useState('');
+  const [makeupSlot, setMakeupSlot] = useState<ScheduleItem | null>(null);
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalAction, setModalAction] = useState<'close' | 'sms'>('close');
 
-    <header class="text-center mb-20">
-        <h1 class="studio-logo text-gray-900">Hi Art Studio</h1>
-        <p id="sub-title" class="text-[9px] uppercase tracking-[0.4em] text-gray-400 mt-3 italic font-light">Makeup Lesson Request</p>
-    </header>
+  const t = translations[lang];
 
-    <div class="space-y-20">
-        <!-- 1. Student Info -->
-        <section>
-            <div class="space-y-10">
-                <div>
-                    <label id="label-name" class="label-text">Student Name</label>
-                    <input type="text" id="student-name" placeholder="e.g. Lan Kim">
-                </div>
-                <div>
-                    <label id="label-grade" class="label-text">Grade</label>
-                    <input type="text" id="student-grade" placeholder="e.g. Year 2...">
-                </div>
-            </div>
-        </section>
+  // Helper: Get day name from date string
+  const getDayName = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-').map(Number);
+    // Note: month is 0-indexed in Date constructor
+    const dateObj = new Date(year, month - 1, day);
+    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dateObj.getDay()];
+  };
 
-        <!-- 2. Absence Class -->
-        <section>
-            <h2 id="head-cancel" class="section-title">Class to Absent</h2>
-            <div class="space-y-8 mt-4">
-                <div>
-                    <label id="label-cancel-date" class="label-text">Select Date of Absence</label>
-                    <input type="date" id="cancel-date" onchange="updateCancelTimeSlots()">
-                </div>
-                <div id="cancel-time-area" class="hidden">
-                    <label id="label-cancel-time" class="label-text">Select Original Class Time</label>
-                    <div id="cancel-time-slots" class="mt-4"></div>
-                </div>
-            </div>
-        </section>
+  const getDayLabel = (dateStr: string): string => {
+    const day = getDayName(dateStr);
+    if (lang === 'ko') {
+      const koDays: Record<string, string> = {
+        Mon: '월요일', Tue: '화요일', Wed: '수요일', Thu: '목요일', Fri: '금요일', Sat: '토요일', Sun: '일요일'
+      };
+      return koDays[day] || day;
+    }
+    return day;
+  };
 
-        <!-- 3. Makeup Request -->
-        <section id="makeup-section" class="hidden border-t border-gray-100 pt-16">
-            <h2 id="head-makeup" class="section-title">Requested Makeup</h2>
-            <div class="space-y-10 mt-6">
-                <button id="btn-decide-later" onclick="decideLater()" class="w-full border border-black py-4 text-[10px] uppercase tracking-widest font-bold hover:bg-gray-50">I'll decide the date later</button>
-                
-                <div id="decide-now-area" class="space-y-8">
-                    <div class="text-center py-2 text-[10px] text-gray-300 italic tracking-widest">—— OR ——</div>
-                    <div>
-                        <label id="label-makeup-date" class="label-text">Select Preferred Date</label>
-                        <input type="date" id="makeup-date" onchange="updateMakeupTimeSlots()">
-                    </div>
-                    <div id="makeup-time-area" class="hidden">
-                        <label id="label-makeup-time" class="label-text">Available Makeup Slots</label>
-                        <div id="makeup-time-slots" class="mt-4"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
+  const absentDayName = getDayName(cancelDate);
 
-        <!-- 4. Final Section -->
-        <section id="final-section" class="hidden pt-12 border-t border-gray-100">
-            <button id="btn-submit-main" onclick="showFinalNotice()" class="w-full bg-black text-white py-5 text-[10px] uppercase tracking-[0.25em] shadow-lg">
-                Submit Request
-            </button>
-        </section>
-    </div>
-</div>
+  // Class slots filtered by chosen absence date
+  const filteredCancelSlots = scheduleData.filter(s => s.day === absentDayName);
 
-<!-- Modal -->
-<div id="modal" class="modal-bg hidden">
-    <div class="max-w-xs w-full bg-white p-10 shadow-2xl text-center border border-gray-50">
-        <p id="modal-msg" class="text-xs text-gray-600 leading-relaxed mb-10 font-light"></p>
-        <button id="modal-close-btn" onclick="closeModal()" class="text-[10px] font-bold border-b border-black pb-1 uppercase tracking-widest">Close</button>
-    </div>
-</div>
+  // Class slots filtered by makeup date and duration matches selected absent slot duration
+  const makeupDayName = getDayName(makeupDate);
+  const filteredMakeupSlots = scheduleData.filter(
+    s => s.day === makeupDayName && s.dur === (cancelSlot?.dur || 0)
+  );
 
-<script>
-    const translations = {
-        en: {
-            subTitle: "Makeup Lesson Request",
-            headCancel: "Class to Absent",
-            labelName: "Student Name",
-            labelGrade: "Grade",
-            labelCancelDate: "Date of Absence",
-            labelCancelTime: "Original Class Time",
-            headMakeup: "Requested Makeup Slot",
-            labelMakeupDate: "Preferred Makeup Date",
-            labelMakeupTime: "Available Slots",
-            btnLater: "I'll decide the date later",
-            policyBlock: "All classes must be changed or canceled at least 24 hours in advance. Request denied due to insufficient notice.",
-            laterNotice: "Please note: It is your responsibility to remind yourself to book the makeup lesson. When you book later, you must provide the date and time of the original absent class.",
-            finalNotice: "This is a request only. Head Teacher Lan Kim will send a confirmation SMS. If requested 24h+ in advance, your absence is noted, but finding a makeup slot may take time.",
-            satMsg: "Makeup classes are only available on weekdays. For special requests, please contact Head Teacher Lan Kim directly.",
-            dayConflictMsg: "This is the student's regular class day. Makeup lessons cannot be scheduled on the same day as your regular class to prevent fatigue and scheduling conflicts.",
-            btnSubmit: "Submit Request",
-            confirmBtn: "I understand. Open SMS"
-        },
-        ko: {
-            subTitle: "보충 수업 신청",
-            headCancel: "결석 예정 수업",
-            labelName: "학생 성함",
-            labelGrade: "학년",
-            labelCancelDate: "결석 날짜",
-            labelCancelTime: "기존 수업 시간",
-            headMakeup: "보충 신청 수업",
-            labelMakeupDate: "보충 희망 날짜",
-            labelMakeupTime: "선택 가능한 시간",
-            btnLater: "보충 날짜는 나중에 결정하겠습니다",
-            policyBlock: "모든 수업은 최소 24시간 전에 변경 혹은 캔슬이 가능합니다. 빈 자리에 다른 학생을 초대할 만한 충분한 시간이 주어지지 않았기 때문에 보충 수업 신청이 거절될 수 있습니다.",
-            laterNotice: "주의: 보충 수업 예약 리마인드 책임은 본인에게 있습니다. 추후 예약 시 취소했던 수업의 날짜와 시간을 반드시 알려주셔야 합니다.",
-            finalNotice: "안내: 이것은 단지 보충수업 요청일 뿐이며, 헤드티쳐 Lan Kim이 확인 후 컨펌 문자를 보내드릴 예정입니다. 24시간 전 요청이라면 수업 취소는 처리되나, 보충 수업 가능 여부 확인에는 시간이 걸릴 수 있습니다.",
-            satMsg: "보충 수업은 평일에만 가능합니다. 특이 사항은 헤드티쳐 Lan Kim에게 직접 문의하십시오.",
-            dayConflictMsg: "해당 요일은 정규 수업이 있는 날입니다. 정규 수업과 겹칠 수 있으며, 하루에 두 타임을 연달아 수업할 경우 아이들이 매우 피곤해할 수 있어 보충 신청이 제한됩니다.",
-            btnSubmit: "신청서 제출",
-            confirmBtn: "내용 확인 및 문자 발송"
-        },
-        man: {
-            subTitle: "补课申请",
-            headCancel: "缺席课程",
-            labelName: "学生姓名",
-            labelGrade: "年级",
-            labelCancelDate: "缺席日期",
-            labelCancelTime: "原定课程时间",
-            headMakeup: "补课申请时间",
-            labelMakeupDate: "希望补课日期",
-            labelMakeupTime: "可用时间段",
-            btnLater: "稍后决定补课日期",
-            policyBlock: "所有课程必须至少提前 24 小时更改或取消。由于通知时间不足，申请可能被拒绝。",
-            laterNotice: "请注意：稍后预约补课是您的责任。再次预约时，请务必提供原缺席课程的日期和时间。",
-            finalNotice: "这仅是申请。主课老师 Lan Kim 将通过短信确认。提前 24 小时申请将处理取消，但补课位置确认可能需要时间。",
-            satMsg: "补课仅限工作日。如有特殊要求，请直接联系 Lan Kim 老师。",
-            dayConflictMsg: "这是学生定期上课的时间。补课不能安排在与定期课程同一天，以防冲突和学生疲劳。",
-            btnSubmit: "提交申请",
-            confirmBtn: "确认并发送短信"
-        },
-        can: {
-            subTitle: "補課申請",
-            headCancel: "缺席課程",
-            labelName: "學生姓名",
-            labelGrade: "年級",
-            labelCancelDate: "缺席日期",
-            labelCancelTime: "原定課程時間",
-            headMakeup: "補課申請時間",
-            labelMakeupDate: "希望補課日期",
-            labelMakeupTime: "可用時間段",
-            btnLater: "稍後決定補課日期",
-            policyBlock: "所有課程必須至少提前 24 小時更改或取消。由於通知時間不足，申請可能被拒絕。",
-            laterNotice: "請注意：稍後預約補課是您的責任。再次預約時，請務必提供原缺席課程的日期和時間。",
-            finalNotice: "這僅是申請。主課老師 Lan Kim 將通過短信確認。提前 24 小時申請將處理取消，但補課位置確認可能需要時間。",
-            satMsg: "補課僅限工作日。如有特殊要求，請直接聯絡 Lan Kim 老師。",
-            dayConflictMsg: "這是學生定期上課的時間。補課不能安排在與定期課程同一天，以防衝突和學生疲勞。",
-            btnSubmit: "提交申請",
-            confirmBtn: "確認並發送短信"
-        }
-    };
+  const handleCancelDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCancelDate(e.target.value);
+    setCancelSlot(null);
+    setMakeupChoice(null);
+    setMakeupDate('');
+    setMakeupSlot(null);
+  };
 
-    const scheduleData = [
-        { day: 'Mon', time: '05:20 - 06:20', dur: 1 }, { day: 'Tue', time: '03:20 - 04:20', dur: 1 }, { day: 'Tue', time: '04:30 - 05:30', dur: 1 }, { day: 'Wed', time: '03:50 - 04:50', dur: 1 }, { day: 'Thu', time: '04:00 - 05:00', dur: 1 }, { day: 'Fri', time: '03:50 - 04:50', dur: 1 },
-        { day: 'Mon', time: '03:40 - 05:10', dur: 1.5 }, { day: 'Tue', time: '05:50 - 07:20', dur: 1.5 }, { day: 'Wed', time: '03:40 - 05:10', dur: 1.5 }, { day: 'Thu', time: '04:00 - 05:30', dur: 1.5 }, { day: 'Fri', time: '03:40 - 05:10', dur: 1.5 },
-        { day: 'Sat', time: '09:40 - 11:10', dur: 1.5 }, { day: 'Sat', time: '11:20 - 12:50', dur: 1.5 },
-        { day: 'Mon', time: '04:00 - 06:00', dur: 2 }, { day: 'Tue', time: '03:40 - 05:40', dur: 2 }, { day: 'Wed', time: '05:20 - 07:20', dur: 2 }, { day: 'Thu', time: '05:40 - 07:40', dur: 2 }, { day: 'Fri', time: '05:20 - 07:20', dur: 2 }
-    ];
-
-    let currentLang = 'en';
-    let selectedDur = 0;
-    let absentDayName = ""; // 결석 요일 저장용
-    let cancelInfo = "";
-    let makeupInfo = "";
-
-    function changeLang(lang) {
-        currentLang = lang;
-        const t = translations[lang];
-        document.getElementById('sub-title').innerText = t.subTitle;
-        document.getElementById('head-cancel').innerText = t.headCancel;
-        document.getElementById('label-name').innerText = t.labelName;
-        document.getElementById('label-grade').innerText = t.labelGrade;
-        document.getElementById('label-cancel-date').innerText = t.labelCancelDate;
-        document.getElementById('label-cancel-time').innerText = t.labelCancelTime;
-        document.getElementById('head-makeup').innerText = t.headMakeup;
-        document.getElementById('label-makeup-date').innerText = t.labelMakeupDate;
-        document.getElementById('label-makeup-time').innerText = t.labelMakeupTime;
-        document.getElementById('btn-decide-later').innerText = t.btnLater;
-        document.getElementById('btn-submit-main').innerText = t.btnSubmit;
-        document.getElementById('student-name').placeholder = (lang === 'ko' ? "예: Lan Kim" : "e.g. Lan Kim");
-        document.getElementById('student-grade').placeholder = (lang === 'ko' ? "예: Year 2..." : "e.g. Year 2...");
+  const handleCancelSlotSelect = (slot: ScheduleItem) => {
+    if (!cancelDate) return;
+    
+    // Validate 24h notice
+    const [year, month, day] = cancelDate.split('-').map(Number);
+    const [startTime] = slot.time.split(' - ');
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    
+    let hourInt = startHour;
+    // On weekdays, lesson start times are in the PM, though represented in 12h format
+    if (absentDayName !== 'Sat' && hourInt < 12) {
+      hourInt += 12;
+    }
+    
+    const classTime = new Date(year, month - 1, day, hourInt, startMin);
+    const timeDiff = classTime.getTime() - Date.now();
+    
+    if (timeDiff < 24 * 60 * 60 * 1000) {
+      setModalMessage(t.policyBlock);
+      setModalAction('close');
+      setModalOpen(true);
+      // Reset subsequent flow
+      setCancelSlot(null);
+      setMakeupChoice(null);
+      return;
     }
 
-    function updateCancelTimeSlots() {
-        const val = document.getElementById('cancel-date').value;
-        if(!val) return;
-        const dateParts = val.split('-');
-        const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
-        const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dateObj.getDay()];
-        const container = document.getElementById('cancel-time-slots');
-        container.innerHTML = "";
-        
-        scheduleData.filter(s => s.day === dayName).forEach(slot => {
-            const btn = document.createElement('button');
-            btn.className = "btn-select";
-            btn.innerText = `${slot.time} (${slot.dur}h)`;
-            btn.onclick = () => {
-                let [startHour, startMin] = slot.time.split(' - ')[0].split(':');
-                let hourInt = parseInt(startHour);
-                if (dayName !== 'Sat' && hourInt < 12) hourInt += 12;
-                
-                const classTime = new Date(dateParts[0], dateParts[1]-1, dateParts[2], hourInt, parseInt(startMin));
-                if ((classTime - new Date()) < (24 * 60 * 60 * 1000)) {
-                    showModal(translations[currentLang].policyBlock);
-                    document.getElementById('makeup-section').classList.add('hidden');
-                    return;
-                }
+    setCancelSlot(slot);
+    // Reset makeup flow on new slot selection
+    setMakeupChoice(null);
+    setMakeupDate('');
+    setMakeupSlot(null);
+  };
 
-                selectedDur = slot.dur;
-                absentDayName = dayName; // 결석 요일 저장
-                cancelInfo = `${val} (${dayName}) ${slot.time}`;
-                document.querySelectorAll('#cancel-time-slots .btn-select').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById('makeup-section').classList.remove('hidden');
+  const handleMakeupDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const chosenDate = e.target.value;
+    if (!chosenDate) return;
+
+    const dayName = getDayName(chosenDate);
+
+    // 1. Sunday check only (Saturday is now allowed based on user request!)
+    if (dayName === 'Sun') {
+      setModalMessage(t.sunMsg);
+      setModalAction('close');
+      setModalOpen(true);
+      setMakeupDate('');
+      setMakeupSlot(null);
+      return;
+    }
+
+    // 2. Conflict same-day check
+    if (dayName === absentDayName) {
+      setModalMessage(t.dayConflictMsg);
+      setModalAction('close');
+      setModalOpen(true);
+      setMakeupDate('');
+      setMakeupSlot(null);
+      return;
+    }
+
+    setMakeupDate(chosenDate);
+    setMakeupSlot(null);
+  };
+
+  const handleDecideLater = () => {
+    setMakeupChoice('later');
+    setMakeupSlot(null);
+    setMakeupDate('');
+    setModalMessage(t.laterNotice);
+    setModalAction('close');
+    setModalOpen(true);
+  };
+
+  const handleDecideNow = () => {
+    setMakeupChoice('now');
+    setMakeupSlot(null);
+    setMakeupDate('');
+  };
+
+  const handleFormSubmit = () => {
+    if (!studentName.trim()) {
+      setModalMessage(t.nameRequired);
+      setModalAction('close');
+      setModalOpen(true);
+      return;
+    }
+    
+    setModalMessage(t.finalNotice);
+    setModalAction('sms');
+    setModalOpen(true);
+  };
+
+  const triggerSMS = () => {
+    const cancelInfo = cancelSlot 
+      ? `${cancelDate} (${getDayLabel(cancelDate)}) ${cancelSlot.time}` 
+      : '';
+    
+    let makeupInfoText = '';
+    if (makeupChoice === 'later') {
+      makeupInfoText = t.decideLaterMsg;
+    } else if (makeupChoice === 'now' && makeupSlot) {
+      makeupInfoText = `${makeupDate} (${getDayLabel(makeupDate)}) ${makeupSlot.time}`;
+    }
+
+    const msg = `[Hi Art Studio Request]\nStudent: ${studentName}\nGrade: ${studentGrade || 'N/A'}\n- Absent: ${cancelInfo}\n- Makeup: ${makeupInfoText}`;
+    window.location.href = `sms:0405068004?body=${encodeURIComponent(msg)}`;
+    setModalOpen(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8 font-sans antialiased text-neutral-900">
+      <div className="max-w-md mx-auto bg-white border border-neutral-100 shadow-sm overflow-hidden flex flex-col min-h-[85vh]">
+        
+        {/* Language selector bar */}
+        <div className="flex justify-end gap-4 px-8 pt-6 text-[9px] tracking-widest text-neutral-400 font-medium">
+          {(['en', 'ko', 'man', 'can'] as Language[]).map((l) => {
+            const labels: Record<Language, string> = {
+              en: 'EN',
+              ko: '한국어',
+              man: '普通话',
+              can: '廣東話'
             };
-            container.appendChild(btn);
-        });
-        document.getElementById('cancel-time-area').classList.remove('hidden');
-    }
+            return (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                id={`lang-btn-${l}`}
+                className={`hover:text-black transition-colors pb-0.5 border-b uppercase ${
+                  lang === l ? 'border-neutral-900 text-neutral-950 font-bold' : 'border-transparent'
+                }`}
+              >
+                {labels[l]}
+              </button>
+            );
+          })}
+        </div>
 
-    function updateMakeupTimeSlots() {
-        const val = document.getElementById('makeup-date').value;
-        if(!val) return;
-        const dateParts = val.split('-');
-        const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
-        const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dateObj.getDay()];
+        {/* Brand Header */}
+        <header className="text-center pt-8 pb-14 px-8">
+          <h1 id="studio-logo" className="font-serif text-[2.2rem] font-light tracking-[0.05em] uppercase text-neutral-900 leading-[1.2] pointer-events-none">
+            Hi Art Studio
+          </h1>
+          <p id="studio-sub" className="text-[9px] uppercase tracking-[0.4em] text-neutral-400 mt-3 italic font-light">
+            {t.subTitle}
+          </p>
+        </header>
 
-        // 1. 토요일/일요일 차단
-        if(dayName === 'Sat' || dayName === 'Sun') {
-            showModal(translations[currentLang].satMsg);
-            document.getElementById('makeup-date').value = "";
-            document.getElementById('makeup-time-area').classList.add('hidden');
-            return;
-        }
+        {/* Form Body Wrap */}
+        <div className="px-8 pb-12 space-y-12 flex-grow">
+          
+          {/* Section 1: Student Information */}
+          <section id="section-student" className="space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label id="lbl-student-name" className="text-[10px] uppercase text-neutral-400 tracking-[0.1em] block mb-1">
+                  {t.labelName}
+                </label>
+                <input
+                  id="input-student-name"
+                  type="text"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  placeholder={lang === 'ko' ? "예: Lan Kim" : "e.g. Lan Kim"}
+                  className="w-full text-sm font-light py-3 border-b border-neutral-200 bg-transparent focus:border-black outline-none transition-colors rounded-none"
+                />
+              </div>
 
-        // 2. 정규 수업 요일(결석 요일) 중복 차단
-        if(dayName === absentDayName) {
-            showModal(translations[currentLang].dayConflictMsg);
-            document.getElementById('makeup-date').value = "";
-            document.getElementById('makeup-time-area').classList.add('hidden');
-            return;
-        }
+              <div>
+                <label id="lbl-student-grade" className="text-[10px] uppercase text-neutral-400 tracking-[0.1em] block mb-1">
+                  {t.labelGrade}
+                </label>
+                <input
+                  id="input-student-grade"
+                  type="text"
+                  value={studentGrade}
+                  onChange={(e) => setStudentGrade(e.target.value)}
+                  placeholder={lang === 'ko' ? "예: Year 2..." : "e.g. Year 2..."}
+                  className="w-full text-sm font-light py-3 border-b border-neutral-200 bg-transparent focus:border-black outline-none transition-colors rounded-none"
+                />
+              </div>
+            </div>
+          </section>
 
-        const container = document.getElementById('makeup-time-slots');
-        container.innerHTML = "";
-        const slots = scheduleData.filter(s => s.day === dayName && s.dur === selectedDur);
-        
-        if(slots.length > 0) {
-            document.getElementById('makeup-time-area').classList.remove('hidden');
-            slots.forEach(slot => {
-                const b = document.createElement('button');
-                b.className = "btn-select";
-                b.innerText = slot.time;
-                b.onclick = () => {
-                    makeupInfo = `${val} (${dayName}) ${slot.time}`;
-                    document.querySelectorAll('#makeup-time-slots .btn-select').forEach(x => x.classList.remove('active'));
-                    b.classList.add('active');
-                    document.getElementById('final-section').classList.remove('hidden');
-                };
-                container.appendChild(b);
-            });
-        } else {
-            container.innerHTML = `<p class='text-[10px] text-gray-300 italic'>No matching classes this day.</p>`;
-        }
-    }
+          {/* Section 2: Absence Date and Slot */}
+          <section id="section-absence" className="space-y-6">
+            <div>
+              <h2 id="head-cancel" className="text-[10px] font-semibold uppercase tracking-[0.14em] border-b border-neutral-950 pb-1 inline-block mb-3">
+                {t.headCancel}
+              </h2>
+            </div>
 
-    function decideLater() {
-        makeupInfo = translations[currentLang].btnLater;
-        showModal(translations[currentLang].laterNotice);
-        document.getElementById('makeup-time-area').classList.add('hidden');
-        document.getElementById('final-section').classList.remove('hidden');
-    }
+            <div className="space-y-6">
+              <div>
+                <label id="lbl-cancel-date" className="text-[10px] uppercase text-neutral-400 tracking-[0.1em] block mb-1">
+                  {t.labelCancelDate}
+                </label>
+                <input
+                  id="input-cancel-date"
+                  type="date"
+                  value={cancelDate}
+                  onChange={handleCancelDateChange}
+                  className="w-full text-sm font-light py-3 border-b border-neutral-200 bg-transparent focus:border-black outline-none transition-colors rounded-none"
+                />
+              </div>
 
-    function showFinalNotice() {
-        const modal = document.getElementById('modal');
-        document.getElementById('modal-msg').innerText = translations[currentLang].finalNotice;
-        const btn = document.getElementById('modal-close-btn');
-        btn.innerText = translations[currentLang].confirmBtn;
-        btn.onclick = sendFinalSMS;
-        modal.classList.remove('hidden');
-    }
+              {cancelDate && (
+                <motion.div
+                  id="cancel-slots-wrapper"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-3"
+                >
+                  <label id="lbl-cancel-time" className="text-[10px] uppercase text-neutral-400 tracking-[0.1em] block mb-2">
+                    {t.labelCancelTime} ({getDayLabel(cancelDate)})
+                  </label>
+                  
+                  {filteredCancelSlots.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-2">
+                      {filteredCancelSlots.map((slot, index) => {
+                        const isSelected = cancelSlot?.time === slot.time;
+                        return (
+                          <button
+                            key={index}
+                            id={`cancel-slot-btn-${index}`}
+                            onClick={() => handleCancelSlotSelect(slot)}
+                            className={`w-full text-left p-3.5 border transition-all flex justify-between items-center rounded-none ${
+                              isSelected
+                                ? 'bg-neutral-900 border-neutral-900 text-white font-medium'
+                                : 'bg-white border-neutral-200 text-neutral-700 hover:border-neutral-400'
+                            }`}
+                          >
+                            <span className="text-xs tracking-wide">{slot.time}</span>
+                            <span className={`text-[10px] uppercase tracking-wider ${isSelected ? 'text-neutral-300' : 'text-neutral-400'}`}>
+                              {slot.dur} Hour{slot.dur > 1 ? 's' : ''}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-neutral-400 italic py-2">{t.noMatchingClasses}</p>
+                  )}
+                </motion.div>
+              )}
+            </div>
+          </section>
 
-    function sendFinalSMS() {
-        const name = document.getElementById('student-name').value;
-        const grade = document.getElementById('student-grade').value;
-        if(!name) { alert("Name required."); return; }
+          {/* Section 3: Makeup Lesson Request */}
+          <AnimatePresence>
+            {cancelSlot && (
+              <motion.section
+                id="section-makeup"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-6 pt-4 border-t border-neutral-100 overflow-hidden"
+              >
+                <div>
+                  <h2 id="head-makeup" className="text-[10px] font-semibold uppercase tracking-[0.14em] border-b border-neutral-950 pb-1 inline-block mb-3">
+                    {t.headMakeup}
+                  </h2>
+                </div>
 
-        const msg = `[Hi Art Studio Request]\nStudent: ${name}\nGrade: ${grade}\n- Absent: ${cancelInfo}\n- Makeup: ${makeupInfo}`;
-        window.location.href = `sms:0405068004?body=${encodeURIComponent(msg)}`;
-        closeModal();
-    }
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    id="makeup-choice-now-btn"
+                    onClick={handleDecideNow}
+                    className={`p-3 border text-center text-xs tracking-wider transition-all uppercase rounded-none ${
+                      makeupChoice === 'now'
+                        ? 'bg-neutral-900 border-neutral-900 text-white font-medium'
+                        : 'bg-white border-neutral-200 text-neutral-600 hover:border-neutral-400'
+                    }`}
+                  >
+                    {lang === 'ko' ? '지금 일정 정하기' : 'Decide Date Now'}
+                  </button>
+                  <button
+                    id="makeup-choice-later-btn"
+                    onClick={handleDecideLater}
+                    className={`p-3 border text-center text-xs tracking-wider transition-all uppercase rounded-none ${
+                      makeupChoice === 'later'
+                        ? 'bg-neutral-900 border-neutral-900 text-white font-medium'
+                        : 'bg-white border-neutral-200 text-neutral-600 hover:border-neutral-400'
+                    }`}
+                  >
+                    {t.btnLater}
+                  </button>
+                </div>
 
-    function showModal(text) {
-        document.getElementById('modal-msg').innerText = text;
-        const btn = document.getElementById('modal-close-btn');
-        btn.innerText = "Close";
-        btn.onclick = closeModal;
-        document.getElementById('modal').classList.remove('hidden');
-    }
-    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+                {/* Decide now date & slot choosing */}
+                {makeupChoice === 'now' && (
+                  <motion.div
+                    id="decide-now-form"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-5 pt-3"
+                  >
+                    <div>
+                      <label id="lbl-makeup-date" className="text-[10px] uppercase text-neutral-400 tracking-[0.1em] block mb-1">
+                        {t.labelMakeupDate}
+                      </label>
+                      <input
+                        id="input-makeup-date"
+                        type="date"
+                        value={makeupDate}
+                        onChange={handleMakeupDateChange}
+                        className="w-full text-sm font-light py-3 border-b border-neutral-200 bg-transparent focus:border-black outline-none transition-colors rounded-none"
+                      />
+                    </div>
 
-    changeLang('en');
-</script>
-</body>
-</html>
+                    {makeupDate && (
+                      <motion.div
+                        id="makeup-slots-wrapper"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-3"
+                      >
+                        <label id="lbl-makeup-time" className="text-[10px] uppercase text-neutral-400 tracking-[0.1em] block mb-2">
+                          {t.labelMakeupTime} ({getDayLabel(makeupDate)})
+                        </label>
+
+                        {filteredMakeupSlots.length > 0 ? (
+                          <div className="grid grid-cols-1 gap-2">
+                            {filteredMakeupSlots.map((slot, index) => {
+                              const isSelected = makeupSlot?.time === slot.time;
+                              return (
+                                <button
+                                  key={index}
+                                  id={`makeup-slot-btn-${index}`}
+                                  onClick={() => setMakeupSlot(slot)}
+                                  className={`w-full text-left p-3.5 border transition-all flex justify-between items-center rounded-none ${
+                                    isSelected
+                                      ? 'bg-neutral-900 border-neutral-900 text-white font-medium'
+                                      : 'bg-white border-neutral-200 text-neutral-700 hover:border-neutral-400'
+                                  }`}
+                                >
+                                  <span className="text-xs tracking-wide">{slot.time}</span>
+                                  <ChevronRight className={`size-3.5 transition-transform ${isSelected ? 'translate-x-1 text-white' : 'text-neutral-400'}`} />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-neutral-400 italic py-2">{t.noMatchingClasses}</p>
+                        )}
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+              </motion.section>
+            )}
+          </AnimatePresence>
+
+          {/* Section 4: Final Submission button */}
+          <AnimatePresence>
+            {cancelSlot && (makeupChoice === 'later' || (makeupChoice === 'now' && makeupSlot)) && (
+              <motion.div
+                id="section-submit"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="pt-6"
+              >
+                <button
+                  id="submit-request-btn"
+                  onClick={handleFormSubmit}
+                  className="w-full bg-neutral-950 text-white hover:bg-neutral-850 active:scale-[0.99] py-5 px-6 text-xs uppercase tracking-[0.25em] font-bold transition-all shadow-lg flex items-center justify-center gap-2 mt-4 rounded-none"
+                >
+                  <Send className="size-3.5" />
+                  {t.btnSubmit}
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+        </div>
+      </div>
+
+      {/* Modal Overlay / Glassmorphism */}
+      <AnimatePresence>
+        {modalOpen && (
+          <div
+            id="modal-overlay"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm"
+          >
+            <motion.div
+              id="modal-card"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white border border-neutral-100 max-w-xs w-full p-8 shadow-2xl text-center relative"
+            >
+              <div className="flex justify-center mb-4">
+                {modalAction === 'sms' ? (
+                  <CheckCircle className="size-10 text-neutral-900" />
+                ) : (
+                  <AlertTriangle className="size-10 text-neutral-900" />
+                )}
+              </div>
+              
+              <p id="modal-text" className="text-xs text-neutral-600 leading-relaxed font-light mb-8">
+                {modalMessage}
+              </p>
+
+              {modalAction === 'sms' ? (
+                <button
+                  id="modal-sms-btn"
+                  onClick={triggerSMS}
+                  className="w-full bg-black text-white hover:bg-neutral-800 transition-colors py-3 text-[10px] font-bold uppercase tracking-widest"
+                >
+                  {t.confirmBtn}
+                </button>
+              ) : (
+                <button
+                  id="modal-confirm-btn"
+                  onClick={() => setModalOpen(false)}
+                  className="w-full border border-black hover:bg-neutral-50 transition-colors py-3 text-[10px] font-bold uppercase tracking-widest"
+                >
+                  {lang === 'ko' ? '확인' : 'Close'}
+                </button>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
