@@ -1,188 +1,566 @@
-import { Language, TranslationSchema } from '../types';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hi Art Studio | Makeup Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fcfbf9; color: #1a1a1a; -webkit-font-smoothing: antialiased; }
+        .studio-logo { 
+            font-family: 'Cormorant Garamond', serif; 
+            font-size: 2.2rem; 
+            letter-spacing: 0.05em; 
+            text-transform: uppercase; 
+            font-weight: 300;
+            line-height: 1.2;
+        }
+        .hidden { display: none !important; }
+        .modal-bg { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); position: fixed; top:0; left:0; width:100%; height:100%; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        input { border-radius: 0 !important; border-bottom: 1px solid #e5e5e5 !important; background: transparent; transition: border-color 0.3s; width: 100%; padding: 12px 0; font-size: 15px; color: #1a1a1a; }
+        input::placeholder { color: #aaa; font-style: italic; font-size: 14px; }
+        input:focus { border-bottom: 1px solid #1a1a1a !important; outline: none; }
+        .btn-select { border: 1px solid #e5e5e5; padding: 14px; font-size: 13px; text-align: left; cursor: pointer; transition: 0.2s; margin-bottom: 8px; display: block; width: 100%; background: #ffffff; }
+        .btn-select.active { background: #1a1a1a; color: white; border-color: #1a1a1a; font-weight: 600; }
+        .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; border-bottom: 2px solid #1a1a1a; display: inline-block; padding-bottom: 3px; margin-bottom: 20px; }
+        .label-text { font-size: 11px; font-weight: 600; text-transform: uppercase; color: #888; letter-spacing: 0.08em; margin-bottom: 6px; display: block; }
+        .tab-btn { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; padding: 12px 16px; border-bottom: 2px solid transparent; color: #888; cursor: pointer; }
+        .tab-btn.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 700; }
+    </style>
+</head>
+<body class="pb-32">
 
-export const translations: Record<Language, TranslationSchema> = {
-  en: {
-    studioName: "Hi Art Studio",
-    subTitle: "Makeup Lesson Request",
-    headCancel: "Class to Absent",
-    labelName: "Student Name",
-    labelGrade: "Grade",
-    labelCancelDate: "Date of Absence",
-    labelCancelTime: "Original Class Time",
-    headMakeup: "Requested Makeup Slot",
-    labelMakeupDate: "Preferred Makeup Date",
-    labelMakeupTime: "Available Slots",
-    btnLater: "I'll decide the date later",
-    decideLaterSelected: "Decide Makeup Date Later",
-    orDivider: "—— OR ——",
-    policyBlock: "All classes must be changed or canceled at least 24 hours in advance. Request denied due to insufficient notice.",
-    laterNotice: "Please note: It is your responsibility to remind yourself to book the makeup lesson. When you book later, you must provide the date and time of the original absent class.",
-    finalNotice: "This is a request only. Head Teacher Lan Kim will send a confirmation SMS. If requested 24h+ in advance, your absence is noted, but finding a makeup slot may take time.",
-    sunMsg: "Makeup classes are not available on Sundays. For special requests, please contact Head Teacher Lan Kim directly.",
-    dayConflictMsg: "This is the student's regular class day. Makeup lessons cannot be scheduled on the same day as your regular class to prevent fatigue and scheduling conflicts.",
-    saturdayNotice: "[Notice] 4 more Saturday Classes Opened - Available!",
-    btnSubmit: "Submit Request",
-    confirmBtn: "I understand. Open SMS",
-    closeBtn: "Close",
-    noMatchingSlots: "No matching classes available for this duration on this day.",
-    
-    tabNewRequest: "New Request",
-    tabHistory: "My Bookings",
-    historyTitle: "Booking History",
-    noHistory: "No booking requests found.",
-    statusPending: "Pending Confirmation",
-    statusSent: "SMS Requested",
-    statusCancelled: "Cancelled",
-    btnCancelRequest: "Cancel Booking",
-    btnResendSMS: "Send / Resend SMS",
-    cancelConfirmTitle: "Cancel Booking Request",
-    cancelConfirmMsg: "Are you sure you want to cancel this makeup request? An SMS notification will be prepared to notify Teacher Lan Kim.",
-    btnConfirmCancel: "Confirm Cancellation & Notify",
-    cancelSuccessNotice: "Your request has been marked as cancelled.",
-    absentClassLabel: "Absent Class",
-    makeupClassLabel: "Makeup Class",
-    requestedOnLabel: "Submitted",
-    placeholderName: "e.g. Lan Kim",
-    placeholderGrade: "e.g. Year 2...",
-    summaryTitle: "Request Summary",
-    copySuccess: "Details copied to clipboard!"
-  },
-  ko: {
-    studioName: "Hi Art Studio",
-    subTitle: "보충 수업 신청",
-    headCancel: "결석 예정 수업",
-    labelName: "학생 성함",
-    labelGrade: "학년",
-    labelCancelDate: "결석 날짜",
-    labelCancelTime: "기존 수업 시간",
-    headMakeup: "보충 신청 수업",
-    labelMakeupDate: "보충 희망 날짜",
-    labelMakeupTime: "선택 가능한 시간",
-    btnLater: "보충 날짜는 나중에 결정하겠습니다",
-    decideLaterSelected: "보충 날짜 나중에 결정",
-    orDivider: "—— 또는 ——",
-    policyBlock: "모든 수업은 최소 24시간 전에 변경 혹은 캔슬이 가능합니다. 빈 자리에 다른 학생을 초대할 만한 충분한 시간이 주어지지 않았기 때문에 보충 수업 신청이 거절될 수 있습니다.",
-    laterNotice: "주의: 보충 수업 예약 리마인드 책임은 본인에게 있습니다. 추후 예약 시 취소했던 수업의 날짜와 시간을 반드시 알려주셔야 합니다.",
-    finalNotice: "안내: 이것은 단지 보충수업 요청일 뿐이며, 헤드티쳐 Lan Kim이 확인 후 컨펌 문자를 보내드릴 예정입니다. 24시간 전 요청이라면 수업 취소는 처리되나, 보충 수업 가능 여부 확인에는 시간이 걸릴 수 있습니다.",
-    sunMsg: "보충 수업은 일요일에 불가능합니다. 특이 사항은 헤드티쳐 Lan Kim에게 직접 문의하십시오.",
-    dayConflictMsg: "해당 요일은 정규 수업이 있는 날입니다. 정규 수업과 겹칠 수 있으며, 하루에 두 타임을 연달아 수업할 경우 아이들이 매우 피곤해할 수 있어 보충 신청이 제한됩니다.",
-    saturdayNotice: "[안내] 토요일 4개 반 추가 신설 - 보충 수업 신청 가능!",
-    btnSubmit: "신청서 제출",
-    confirmBtn: "내용 확인 및 문자 발송",
-    closeBtn: "닫기",
-    noMatchingSlots: "이 날짜에 해당되는 시간대의 수업이 없습니다.",
-    
-    tabNewRequest: "보충 수업 신청",
-    tabHistory: "예약 내역 확인",
-    historyTitle: "보충 수업 신청 내역",
-    noHistory: "신청 내역이 없습니다.",
-    statusPending: "컨펌 대기중",
-    statusSent: "문자 발송 완료",
-    statusCancelled: "예약 취소됨",
-    btnCancelRequest: "예약 취소하기",
-    btnResendSMS: "문자 다시 보내기",
-    cancelConfirmTitle: "예약 취소 확인",
-    cancelConfirmMsg: "정말로 이 보충 수업 신청을 취소하시겠습니까? 헤드티쳐 Lan Kim에게 취소 문자를 보낼 수 있습니다.",
-    btnConfirmCancel: "취소 및 문자 보내기",
-    cancelSuccessNotice: "예약이 성공적으로 취소되었습니다.",
-    absentClassLabel: "결석 수업",
-    makeupClassLabel: "보충 희망 수업",
-    requestedOnLabel: "신청일",
-    placeholderName: "예: Lan Kim",
-    placeholderGrade: "예: Year 2...",
-    summaryTitle: "신청 상세 정보",
-    copySuccess: "상세 내용이 복사되었습니다!"
-  },
-  man: {
-    studioName: "Hi Art Studio",
-    subTitle: "补课申请",
-    headCancel: "缺席课程",
-    labelName: "学生姓名",
-    labelGrade: "年级",
-    labelCancelDate: "缺席日期",
-    labelCancelTime: "原定课程时间",
-    headMakeup: "补课申请时间",
-    labelMakeupDate: "希望补课日期",
-    labelMakeupTime: "可用时间段",
-    btnLater: "稍后决定补课日期",
-    decideLaterSelected: "稍后决定补课日期",
-    orDivider: "—— 或 ——",
-    policyBlock: "所有课程必须至少提前 24 小时更改或取消。由于通知时间不足，申请可能被拒绝。",
-    laterNotice: "请注意：稍后预约补课是您的责任。再次预约时，请务必提供原缺席课程的日期和时间。",
-    finalNotice: "这仅是申请。主课老师 Lan Kim 将通过短信确认。提前 24 小时申请将处理取消，但补课位置确认可能需要时间。",
-    sunMsg: "周日不提供补课服务。如有特殊要求，请直接联系 Lan Kim 老师。",
-    dayConflictMsg: "这是学生定期上课的时间。补课不能安排在与定期课程同一天，以防冲突和学生疲劳。",
-    saturdayNotice: "[提示] 周六新增 4 个班级 - 现已开放补课预约！",
-    btnSubmit: "提交申请",
-    confirmBtn: "确认并发送短信",
-    closeBtn: "关闭",
-    noMatchingSlots: "该日期没有匹配的时长课程。",
-    
-    tabNewRequest: "新建申请",
-    tabHistory: "预约记录",
-    historyTitle: "补课申请记录",
-    noHistory: "暂无补课申请记录。",
-    statusPending: "等待确认",
-    statusSent: "已发短信",
-    statusCancelled: "已取消",
-    btnCancelRequest: "取消预约",
-    btnResendSMS: "重发短信",
-    cancelConfirmTitle: "取消预约申请",
-    cancelConfirmMsg: "您确定要取消此补课申请吗？将为您准备告知 Lan Kim 老师的取消短信。",
-    btnConfirmCancel: "确认取消并发送短信",
-    cancelSuccessNotice: "您的申请已成功取消。",
-    absentClassLabel: "缺席课程",
-    makeupClassLabel: "补课课程",
-    requestedOnLabel: "提交时间",
-    placeholderName: "例如 Lan Kim",
-    placeholderGrade: "例如 Year 2...",
-    summaryTitle: "申请详情",
-    copySuccess: "内容已复制到剪贴板！"
-  },
-  can: {
-    studioName: "Hi Art Studio",
-    subTitle: "補課申請",
-    headCancel: "缺席課程",
-    labelName: "學生姓名",
-    labelGrade: "年級",
-    labelCancelDate: "缺席日期",
-    labelCancelTime: "原定課程時間",
-    headMakeup: "補課申請時間",
-    labelMakeupDate: "希望補課日期",
-    labelMakeupTime: "可用時間段",
-    btnLater: "稍後決定補課日期",
-    decideLaterSelected: "稍後決定補課日期",
-    orDivider: "—— 或 ——",
-    policyBlock: "所有課程必須至少提前 24 小時更改或取消。由於通知時間不足，申請可能被拒絕。",
-    laterNotice: "請注意：稍後預約補課是您的責任。再次預約時，請務必提供原缺席課程的日期和時間。",
-    finalNotice: "這僅是申請。主課老師 Lan Kim 將通過短信確認。提前 24 小時申請將處理取消，但補課位置確認可能需要時間。",
-    sunMsg: "週日不提供補課服務。如有特殊要求，請直接聯絡 Lan Kim 老師。",
-    dayConflictMsg: "這是學生定期上課的時間。補課不能安排在與定期課程同一天，以防衝突和學生疲勞。",
-    saturdayNotice: "[提示] 週六新增 4 個班級 - 現已開放補課預約！",
-    btnSubmit: "提交申請",
-    confirmBtn: "確認並發送短信",
-    closeBtn: "關閉",
-    noMatchingSlots: "該日期沒有匹配的時長課程。",
-    
-    tabNewRequest: "新建申請",
-    tabHistory: "預約記錄",
-    historyTitle: "補課申請記錄",
-    noHistory: "暫無補課申請記錄。",
-    statusPending: "等待確認",
-    statusSent: "已發短信",
-    statusCancelled: "已取消",
-    btnCancelRequest: "取消預約",
-    btnResendSMS: "重發短信",
-    cancelConfirmTitle: "取消預約申請",
-    cancelConfirmMsg: "您確定要取消此補課申請嗎？將為您準備告知 Lan Kim 老師的取消短信。",
-    btnConfirmCancel: "確認取消並發送短信",
-    cancelSuccessNotice: "您的申請已成功取消。",
-    absentClassLabel: "缺席課程",
-    makeupClassLabel: "補課課程",
-    requestedOnLabel: "提交時間",
-    placeholderName: "例如 Lan Kim",
-    placeholderGrade: "例如 Year 2...",
-    summaryTitle: "申請詳情",
-    copySuccess: "內容已複製到剪貼簿！"
-  }
-};
+<div id="app" class="max-w-md mx-auto px-6 py-8 sm:py-12">
+    <!-- Language Selection -->
+    <div class="flex justify-end gap-3 mb-8 text-[11px] tracking-widest text-gray-400 font-medium">
+        <button onclick="changeLang('en')" id="lang-en" class="hover:text-black">EN</button>
+        <span class="text-gray-300">|</span>
+        <button onclick="changeLang('ko')" id="lang-ko" class="hover:text-black font-bold text-black">한국어</button>
+        <span class="text-gray-300">|</span>
+        <button onclick="changeLang('man')" id="lang-man" class="hover:text-black">普通话</button>
+        <span class="text-gray-300">|</span>
+        <button onclick="changeLang('can')" id="lang-can" class="hover:text-black">廣東話</button>
+    </div>
+
+    <!-- Header -->
+    <header class="text-center mb-8">
+        <h1 class="studio-logo text-gray-900">Hi Art Studio</h1>
+        <p id="sub-title" class="text-[10px] uppercase tracking-[0.25em] text-gray-400 mt-2 italic font-light">보충 수업 신청</p>
+    </header>
+
+    <!-- Navigation Tabs (신청서 vs 내역 확인) -->
+    <div class="flex justify-center border-b border-gray-200 mb-8">
+        <button id="tab-new" onclick="switchTab('new')" class="tab-btn active">보충 수업 신청</button>
+        <button id="tab-history" onclick="switchTab('history')" class="tab-btn">예약 내역 확인 <span id="history-badge" class="ml-1 bg-black text-white text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+    </div>
+
+    <!-- 1. NEW BOOKING FORM TAB -->
+    <div id="view-new" class="space-y-10">
+        <!-- Saturday Notice Banner -->
+        <div id="sat-notice-banner" class="bg-gray-100 border-l-2 border-black p-4 text-xs text-gray-800 font-medium flex items-center gap-2">
+            <span>[안내] 토요일 4개 반 추가 신설 - 보충 수업 신청 가능!</span>
+        </div>
+
+        <!-- 1. Student Info -->
+        <section class="bg-white p-6 border border-gray-100 shadow-sm">
+            <div class="space-y-6">
+                <div>
+                    <label id="label-name" class="label-text">학생 성함 *</label>
+                    <input type="text" id="student-name" placeholder="예: Lan Kim">
+                </div>
+                <div>
+                    <label id="label-grade" class="label-text">학년</label>
+                    <input type="text" id="student-grade" placeholder="예: Year 2...">
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Absence Class -->
+        <section class="bg-white p-6 border border-gray-100 shadow-sm">
+            <h2 id="head-cancel" class="section-title">결석 예정 수업</h2>
+            <div class="space-y-6">
+                <div>
+                    <label id="label-cancel-date" class="label-text">결석 날짜 *</label>
+                    <input type="date" id="cancel-date" onchange="updateCancelTimeSlots()">
+                </div>
+                <div id="cancel-time-area" class="hidden">
+                    <label id="label-cancel-time" class="label-text">기존 수업 시간 *</label>
+                    <div id="cancel-time-slots" class="mt-3"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Makeup Request -->
+        <section id="makeup-section" class="hidden bg-white p-6 border border-gray-100 shadow-sm">
+            <h2 id="head-makeup" class="section-title">보충 신청 수업</h2>
+            <div class="space-y-6 mt-2">
+                <button id="btn-decide-later" onclick="decideLater()" class="w-full border border-black py-4 text-xs uppercase tracking-widest font-bold hover:bg-gray-50 transition">
+                    보충 날짜는 나중에 결정하겠습니다
+                </button>
+                
+                <div id="decide-now-area" class="space-y-6">
+                    <div class="text-center py-1 text-[10px] text-gray-300 italic tracking-widest">—— 또는 ——</div>
+                    <div>
+                        <label id="label-makeup-date" class="label-text">보충 희망 날짜</label>
+                        <input type="date" id="makeup-date" onchange="updateMakeupTimeSlots()">
+                    </div>
+                    <div id="makeup-time-area" class="hidden">
+                        <label id="label-makeup-time" class="label-text">선택 가능한 시간</label>
+                        <div id="makeup-time-slots" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Final Submit Button -->
+        <section id="final-section" class="hidden">
+            <button id="btn-submit-main" onclick="showFinalNotice()" class="w-full bg-black text-white py-5 text-xs uppercase tracking-[0.25em] font-bold shadow-lg hover:bg-gray-800 transition">
+                신청서 제출
+            </button>
+        </section>
+    </div>
+
+    <!-- 2. HISTORY VIEW TAB -->
+    <div id="view-history" class="hidden space-y-6">
+        <h2 id="history-title" class="text-xs font-bold uppercase tracking-widest text-gray-900 border-b border-gray-200 pb-3">예약 신청 내역</h2>
+        <div id="history-list" class="space-y-4"></div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal-bg hidden">
+    <div class="max-w-xs w-full bg-white p-8 shadow-2xl text-center border border-gray-100 relative">
+        <p id="modal-msg" class="text-xs text-gray-700 leading-relaxed mb-8 font-normal whitespace-pre-line"></p>
+        <div id="modal-actions" class="flex flex-col gap-2">
+            <button id="modal-close-btn" onclick="closeModal()" class="w-full bg-black text-white py-3 text-xs font-bold uppercase tracking-widest">확인</button>
+            <button id="modal-cancel-btn" onclick="closeModal()" class="hidden w-full border border-gray-300 py-3 text-xs text-gray-500 uppercase tracking-widest">닫기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const translations = {
+        en: {
+            subTitle: "Makeup Lesson Request",
+            headCancel: "Class to Absent",
+            labelName: "Student Name",
+            labelGrade: "Grade",
+            labelCancelDate: "Date of Absence",
+            labelCancelTime: "Original Class Time",
+            headMakeup: "Requested Makeup Slot",
+            labelMakeupDate: "Preferred Makeup Date",
+            labelMakeupTime: "Available Slots",
+            btnLater: "I'll decide the date later",
+            policyBlock: "All classes must be changed or canceled at least 24 hours in advance. Request denied due to insufficient notice.",
+            laterNotice: "Please note: It is your responsibility to remind yourself to book the makeup lesson. When you book later, you must provide the date and time of the original absent class.",
+            finalNotice: "This is a request only. Head Teacher Lan Kim will send a confirmation SMS. If requested 24h+ in advance, your absence is noted, but finding a makeup slot may take time.",
+            sunMsg: "Makeup classes are not available on Sundays. For special requests, please contact Head Teacher Lan Kim directly.",
+            dayConflictMsg: "This is the student's regular class day. Makeup lessons cannot be scheduled on the same day as your regular class to prevent fatigue and scheduling conflicts.",
+            saturdayNotice: "[Notice] 4 more Saturday Classes Opened - Available!",
+            btnSubmit: "Submit Request",
+            confirmBtn: "I understand. Open SMS",
+            tabNew: "New Request",
+            tabHistory: "My Bookings",
+            historyTitle: "Booking History",
+            noHistory: "No booking history found.",
+            btnCancelReq: "Cancel Booking",
+            cancelConfirmMsg: "Are you sure you want to cancel this makeup request? An SMS notification will be prepared for Teacher Lan Kim.",
+            statusActive: "Requested",
+            statusCancelled: "Cancelled"
+        },
+        ko: {
+            subTitle: "보충 수업 신청",
+            headCancel: "결석 예정 수업",
+            labelName: "학생 성함",
+            labelGrade: "학년",
+            labelCancelDate: "결석 날짜",
+            labelCancelTime: "기존 수업 시간",
+            headMakeup: "보충 신청 수업",
+            labelMakeupDate: "보충 희망 날짜",
+            labelMakeupTime: "선택 가능한 시간",
+            btnLater: "보충 날짜는 나중에 결정하겠습니다",
+            policyBlock: "모든 수업은 최소 24시간 전에 변경 혹은 캔슬이 가능합니다. 빈 자리에 다른 학생을 초대할 만한 충분한 시간이 주어지지 않았기 때문에 보충 수업 신청이 거절될 수 있습니다.",
+            laterNotice: "주의: 보충 수업 예약 리마인드 책임은 본인에게 있습니다. 추후 예약 시 취소했던 수업의 날짜와 시간을 반드시 알려주셔야 합니다.",
+            finalNotice: "안내: 이것은 단지 보충수업 요청일 뿐이며, 헤드티쳐 Lan Kim이 확인 후 컨펌 문자를 보내드릴 예정입니다. 24시간 전 요청이라면 수업 취소는 처리되나, 보충 수업 가능 여부 확인에는 시간이 걸릴 수 있습니다.",
+            sunMsg: "보충 수업은 일요일에 불가능합니다. 특이 사항은 헤드티쳐 Lan Kim에게 직접 문의하십시오.",
+            dayConflictMsg: "해당 요일은 정규 수업이 있는 날입니다. 정규 수업과 겹칠 수 있으며, 하루에 두 타임을 연달아 수업할 경우 아이들이 매우 피곤해할 수 있어 보충 신청이 제한됩니다.",
+            saturdayNotice: "[안내] 토요일 4개 반 추가 신설 - 보충 수업 신청 가능!",
+            btnSubmit: "신청서 제출",
+            confirmBtn: "내용 확인 및 문자 발송",
+            tabNew: "보충 수업 신청",
+            tabHistory: "예약 내역 확인",
+            historyTitle: "보충 수업 신청 내역",
+            noHistory: "신청 내역이 없습니다.",
+            btnCancelReq: "예약 취소하기",
+            cancelConfirmMsg: "정말로 이 보충 수업 신청을 취소하시겠습니까? 헤드티쳐 Lan Kim에게 취소 문자를 전달합니다.",
+            statusActive: "신청 완료",
+            statusCancelled: "예약 취소됨"
+        },
+        man: {
+            subTitle: "补课申请",
+            headCancel: "缺席课程",
+            labelName: "学生姓名",
+            labelGrade: "年级",
+            labelCancelDate: "缺席日期",
+            labelCancelTime: "原定课程时间",
+            headMakeup: "补课申请时间",
+            labelMakeupDate: "希望补课日期",
+            labelMakeupTime: "可用时间段",
+            btnLater: "稍后决定补课日期",
+            policyBlock: "所有课程必须至少提前 24 小时更改或取消。由于通知时间不足，申请可能被拒绝。",
+            laterNotice: "请注意：稍后预约补课是您的责任。再次预约时，请务必提供原缺席课程的日期和时间。",
+            finalNotice: "这仅是申请。主课老师 Lan Kim 将通过短信确认。提前 24 小时申请将处理取消，但补课位置确认可能需要时间。",
+            sunMsg: "周日不提供补课服务。如有特殊要求，请直接联系 Lan Kim 老师。",
+            dayConflictMsg: "这是学生定期上课的时间。补课不能安排在与定期课程同一天，以防冲突和学生疲劳。",
+            saturdayNotice: "[提示] 周六新增 4 个班级 - 现已开放补课预约！",
+            btnSubmit: "提交申请",
+            confirmBtn: "确认并发送短信",
+            tabNew: "新建申请",
+            tabHistory: "预约记录",
+            historyTitle: "补课申请记录",
+            noHistory: "暂无补课申请记录。",
+            btnCancelReq: "取消预约",
+            cancelConfirmMsg: "您确定要取消此补课申请吗？将为您准备告知 Lan Kim 老师的取消短信。",
+            statusActive: "已提交",
+            statusCancelled: "已取消"
+        },
+        can: {
+            subTitle: "補課申請",
+            headCancel: "缺席課程",
+            labelName: "學生姓名",
+            labelGrade: "年級",
+            labelCancelDate: "缺席日期",
+            labelCancelTime: "原定課程時間",
+            headMakeup: "補課申請時間",
+            labelMakeupDate: "希望補課日期",
+            labelMakeupTime: "可用時間段",
+            btnLater: "稍後決定補課日期",
+            policyBlock: "所有課程必須至少提前 24 小時更改或取消。由於通知時間不足，申請可能被拒絕。",
+            laterNotice: "請注意：稍後預約補課是您的責任。再次預約時，請務必提供原缺席課程的日期和時間。",
+            finalNotice: "這僅是申請。主課老師 Lan Kim 將通過短信確認。提前 24 小時申請將處理取消，但補課位置確認可能需要時間。",
+            sunMsg: "週日不提供補課服務。如有特殊要求，請直接聯絡 Lan Kim 老師。",
+            dayConflictMsg: "這是學生定期上課的時間。補課不能安排在與定期課程同一天，以防衝突和學生疲勞。",
+            saturdayNotice: "[提示] 週六新增 4 個班級 - 現已開放補課預約！",
+            btnSubmit: "提交申請",
+            confirmBtn: "確認並發送短信",
+            tabNew: "新建申請",
+            tabHistory: "預約記錄",
+            historyTitle: "補課申請記錄",
+            noHistory: "暫無補課申請記錄。",
+            btnCancelReq: "取消預約",
+            cancelConfirmMsg: "您確定要取消此補課申請嗎？將為您準備告知 Lan Kim 老師的取消短信。",
+            statusActive: "已提交",
+            statusCancelled: "已取消"
+        }
+    };
+
+    const scheduleData = [
+        // 1 Hour Classes
+        { day: 'Mon', time: '05:20 - 06:20', dur: 1 }, 
+        { day: 'Tue', time: '03:20 - 04:20', dur: 1 }, 
+        { day: 'Tue', time: '04:30 - 05:30', dur: 1 }, 
+        { day: 'Wed', time: '03:50 - 04:50', dur: 1 }, 
+        { day: 'Thu', time: '04:00 - 05:00', dur: 1 }, 
+        { day: 'Fri', time: '03:50 - 04:50', dur: 1 },
+        { day: 'Sat', time: '09:40 - 10:40', dur: 1 }, // 신설 토요일 1시간반
+        
+        // 1.5 Hour Classes
+        { day: 'Mon', time: '03:40 - 05:10', dur: 1.5 }, 
+        { day: 'Mon', time: '05:20 - 06:50', dur: 1.5 }, 
+        { day: 'Tue', time: '05:50 - 07:20', dur: 1.5 }, 
+        { day: 'Wed', time: '03:40 - 05:10', dur: 1.5 }, 
+        { day: 'Wed', time: '05:30 - 07:00', dur: 1.5 }, 
+        { day: 'Thu', time: '04:00 - 05:30', dur: 1.5 }, 
+        { day: 'Fri', time: '03:40 - 05:10', dur: 1.5 },
+        { day: 'Sat', time: '09:40 - 11:10', dur: 1.5 }, 
+        { day: 'Sat', time: '11:20 - 12:50', dur: 1.5 },
+        
+        // 2 Hour Classes
+        { day: 'Mon', time: '04:00 - 06:00', dur: 2 }, 
+        { day: 'Tue', time: '03:40 - 05:40', dur: 2 }, 
+        { day: 'Wed', time: '05:20 - 07:20', dur: 2 }, 
+        { day: 'Thu', time: '05:40 - 07:40', dur: 2 }, 
+        { day: 'Fri', time: '05:20 - 07:20', dur: 2 },
+        { day: 'Sat', time: '10:50 - 12:50', dur: 2 }  // 신설 토요일 2시간반
+    ];
+
+    let currentLang = 'ko';
+    let selectedDur = 0;
+    let absentDayName = ""; 
+    let cancelInfo = "";
+    let makeupInfo = "";
+    let selectedCancelSlot = null;
+
+    function changeLang(lang) {
+        currentLang = lang;
+        const t = translations[lang];
+        document.getElementById('sub-title').innerText = t.subTitle;
+        document.getElementById('head-cancel').innerText = t.headCancel;
+        document.getElementById('label-name').innerText = t.labelName;
+        document.getElementById('label-grade').innerText = t.labelGrade;
+        document.getElementById('label-cancel-date').innerText = t.labelCancelDate;
+        document.getElementById('label-cancel-time').innerText = t.labelCancelTime;
+        document.getElementById('head-makeup').innerText = t.headMakeup;
+        document.getElementById('label-makeup-date').innerText = t.labelMakeupDate;
+        document.getElementById('label-makeup-time').innerText = t.labelMakeupTime;
+        document.getElementById('btn-decide-later').innerText = t.btnLater;
+        document.getElementById('btn-submit-main').innerText = t.btnSubmit;
+        document.getElementById('tab-new').innerText = t.tabNew;
+        document.getElementById('tab-history').childNodes[0].nodeValue = t.tabHistory + " ";
+        document.getElementById('history-title').innerText = t.historyTitle;
+        document.getElementById('sat-notice-banner').innerText = t.saturdayNotice;
+        document.getElementById('student-name').placeholder = (lang === 'ko' ? "예: Lan Kim" : "e.g. Lan Kim");
+        document.getElementById('student-grade').placeholder = (lang === 'ko' ? "예: Year 2..." : "e.g. Year 2...");
+        
+        ['en','ko','man','can'].forEach(l => {
+            const btn = document.getElementById('lang-' + l);
+            if(l === lang) btn.className = "hover:text-black font-bold text-black";
+            else btn.className = "hover:text-black";
+        });
+
+        renderHistory();
+    }
+
+    function switchTab(tab) {
+        if(tab === 'new') {
+            document.getElementById('view-new').classList.remove('hidden');
+            document.getElementById('view-history').classList.add('hidden');
+            document.getElementById('tab-new').classList.add('active');
+            document.getElementById('tab-history').classList.remove('active');
+        } else {
+            document.getElementById('view-new').classList.add('hidden');
+            document.getElementById('view-history').classList.remove('hidden');
+            document.getElementById('tab-new').classList.remove('active');
+            document.getElementById('tab-history').classList.add('active');
+            renderHistory();
+        }
+    }
+
+    function updateCancelTimeSlots() {
+        const val = document.getElementById('cancel-date').value;
+        if(!val) return;
+        const dateParts = val.split('-');
+        const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
+        const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dateObj.getDay()];
+        const container = document.getElementById('cancel-time-slots');
+        container.innerHTML = "";
+        
+        scheduleData.filter(s => s.day === dayName).forEach(slot => {
+            const btn = document.createElement('button');
+            btn.className = "btn-select";
+            btn.innerText = `${slot.time} (${slot.dur}h)`;
+            btn.onclick = () => {
+                let [startHour, startMin] = slot.time.split(' - ')[0].split(':');
+                let hourInt = parseInt(startHour);
+                if (dayName !== 'Sat' && hourInt < 12) hourInt += 12;
+                
+                const classTime = new Date(dateParts[0], dateParts[1]-1, dateParts[2], hourInt, parseInt(startMin));
+                if ((classTime - new Date()) < (24 * 60 * 60 * 1000)) {
+                    showModal(translations[currentLang].policyBlock);
+                    document.getElementById('makeup-section').classList.add('hidden');
+                    return;
+                }
+
+                selectedDur = slot.dur;
+                absentDayName = dayName; 
+                selectedCancelSlot = slot;
+                cancelInfo = `${val} (${dayName}) ${slot.time}`;
+                document.querySelectorAll('#cancel-time-slots .btn-select').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('makeup-section').classList.remove('hidden');
+            };
+            container.appendChild(btn);
+        });
+        document.getElementById('cancel-time-area').classList.remove('hidden');
+    }
+
+    function updateMakeupTimeSlots() {
+        const val = document.getElementById('makeup-date').value;
+        if(!val) return;
+        const dateParts = val.split('-');
+        const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
+        const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dateObj.getDay()];
+
+        // 일요일 차단
+        if(dayName === 'Sun') {
+            showModal(translations[currentLang].sunMsg);
+            document.getElementById('makeup-date').value = "";
+            document.getElementById('makeup-time-area').classList.add('hidden');
+            return;
+        }
+
+        // 기존 결석 요일과 동일한 요일 차단
+        if(dayName === absentDayName) {
+            showModal(translations[currentLang].dayConflictMsg);
+            document.getElementById('makeup-date').value = "";
+            document.getElementById('makeup-time-area').classList.add('hidden');
+            return;
+        }
+
+        const container = document.getElementById('makeup-time-slots');
+        container.innerHTML = "";
+        const slots = scheduleData.filter(s => s.day === dayName && s.dur === selectedDur);
+        
+        if(slots.length > 0) {
+            document.getElementById('makeup-time-area').classList.remove('hidden');
+            slots.forEach(slot => {
+                const b = document.createElement('button');
+                b.className = "btn-select";
+                b.innerText = slot.time;
+                b.onclick = () => {
+                    makeupInfo = `${val} (${dayName}) ${slot.time}`;
+                    document.querySelectorAll('#makeup-time-slots .btn-select').forEach(x => x.classList.remove('active'));
+                    b.classList.add('active');
+                    document.getElementById('final-section').classList.remove('hidden');
+                };
+                container.appendChild(b);
+            });
+        } else {
+            container.innerHTML = `<p class='text-xs text-gray-400 italic py-2'>No matching classes this day for ${selectedDur}h duration.</p>`;
+        }
+    }
+
+    function decideLater() {
+        makeupInfo = translations[currentLang].btnLater;
+        showModal(translations[currentLang].laterNotice);
+        document.getElementById('makeup-time-area').classList.add('hidden');
+        document.getElementById('final-section').classList.remove('hidden');
+    }
+
+    function showFinalNotice() {
+        const name = document.getElementById('student-name').value;
+        if(!name) { alert("Student Name is required."); return; }
+        
+        showModal(
+            translations[currentLang].finalNotice,
+            translations[currentLang].confirmBtn,
+            sendFinalSMS
+        );
+    }
+
+    function sendFinalSMS() {
+        const name = document.getElementById('student-name').value;
+        const grade = document.getElementById('student-grade').value;
+
+        // Save local history
+        saveBookingRecord({
+            id: 'REQ-' + Date.now(),
+            name: name,
+            grade: grade || 'N/A',
+            cancel: cancelInfo,
+            makeup: makeupInfo,
+            date: new Date().toLocaleDateString(),
+            status: 'active'
+        });
+
+        const msg = `[Hi Art Studio Request]\nStudent: ${name}\nGrade: ${grade}\n- Absent: ${cancelInfo}\n- Makeup: ${makeupInfo}`;
+        window.location.href = `sms:0405068004?body=${encodeURIComponent(msg)}`;
+        closeModal();
+    }
+
+    function showModal(text, btnText = "확인", confirmHandler = null) {
+        document.getElementById('modal-msg').innerText = text;
+        const btn = document.getElementById('modal-close-btn');
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+        btn.innerText = btnText;
+        
+        if (confirmHandler) {
+            btn.onclick = confirmHandler;
+            cancelBtn.classList.remove('hidden');
+            cancelBtn.onclick = closeModal;
+        } else {
+            btn.onclick = closeModal;
+            cancelBtn.classList.add('hidden');
+        }
+        document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+    // LOCAL STORAGE HISTORY MANAGEMENT
+    function getRecords() {
+        try {
+            return JSON.parse(localStorage.getItem('hi_art_bookings') || '[]');
+        } catch(e) { return []; }
+    }
+
+    function saveBookingRecord(record) {
+        const records = getRecords();
+        records.unshift(record);
+        localStorage.setItem('hi_art_bookings', JSON.stringify(records));
+        updateBadge();
+    }
+
+    function updateBadge() {
+        const records = getRecords().filter(r => r.status === 'active');
+        const badge = document.getElementById('history-badge');
+        if(records.length > 0) {
+            badge.innerText = records.length;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
+    function renderHistory() {
+        const records = getRecords();
+        const container = document.getElementById('history-list');
+        const t = translations[currentLang];
+        updateBadge();
+
+        if(records.length === 0) {
+            container.innerHTML = `<div class='bg-white p-6 text-center text-xs text-gray-400 border border-gray-100'>${t.noHistory}</div>`;
+            return;
+        }
+
+        container.innerHTML = "";
+        records.forEach(req => {
+            const isCancelled = req.status === 'cancelled';
+            const card = document.createElement('div');
+            card.className = `bg-white p-5 border text-xs space-y-3 ${isCancelled ? 'border-gray-200 opacity-60' : 'border-gray-200 shadow-sm'}`;
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                    <span class="font-bold text-gray-900 text-sm">${req.name} <span class="text-xs text-gray-400 font-normal">(${req.grade})</span></span>
+                    <span class="text-[10px] px-2 py-0.5 font-bold ${isCancelled ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}">
+                        ${isCancelled ? t.statusCancelled : t.statusActive}
+                    </span>
+                </div>
+                <div class="space-y-1 text-gray-700">
+                    <p><strong class="text-gray-400 uppercase text-[10px] block">Absent Class</strong> ${req.cancel}</p>
+                    <p><strong class="text-gray-400 uppercase text-[10px] block mt-2">Makeup Slot</strong> ${req.makeup}</p>
+                </div>
+                ${!isCancelled ? `
+                    <div class="pt-2 border-t border-gray-100 flex justify-end">
+                        <button onclick="cancelBooking('${req.id}')" class="text-rose-600 font-bold text-[11px] hover:underline">${t.btnCancelReq}</button>
+                    </div>
+                ` : ''}
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function cancelBooking(id) {
+        const t = translations[currentLang];
+        showModal(t.cancelConfirmMsg, t.btnCancelReq, () => {
+            const records = getRecords();
+            const target = records.find(r => r.id === id);
+            if(target) {
+                target.status = 'cancelled';
+                localStorage.setItem('hi_art_bookings', JSON.stringify(records));
+                renderHistory();
+                
+                // Cancel SMS
+                const smsMsg = `[Hi Art Studio Request - CANCELLED]\nStudent: ${target.name}\n- Cancelled Absent Class: ${target.cancel}\n(This makeup booking has been cancelled.)`;
+                window.location.href = `sms:0405068004?body=${encodeURIComponent(smsMsg)}`;
+            }
+            closeModal();
+        });
+    }
+
+    // Initialize
+    changeLang('ko');
+</script>
+</body>
+</html>
